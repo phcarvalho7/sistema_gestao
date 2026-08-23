@@ -17,7 +17,7 @@ function corPorTipo($tipo) {
 /**
  * Monta o card visual de um produto (usado no catálogo e na home).
  * Como o projeto ainda não trabalha upload de capas reais,
- * é exibido um selo colorido com o tipo do produto.
+ * é exibido um selo colorido com o tipo do produto
  */
 function renderizarCardProduto($produto) {
     $cor = corPorTipo($produto->tipo);
