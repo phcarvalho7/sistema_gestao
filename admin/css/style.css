@@ -1,0 +1,36 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f1f2f6;
+}
+
+.navbar-brand {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+}
+
+.login-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1d3557, #457b9d);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 380px;
+    border: none;
+    border-radius: 14px;
+}
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    border-left: 5px solid #457b9d;
+}
+
+.stat-card h3 {
+    font-weight: 700;
+    color: #1d3557;
+}
+
+.card {
+    border-radius: 10px;
+}

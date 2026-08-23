@@ -1,0 +1,13 @@
+# Dependências do Node/TypeScript
+node_modules/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Configurações de IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

@@ -1,0 +1,46 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f5f6fa;
+}
+
+.navbar-brand {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+.hero {
+    background: linear-gradient(135deg, #1d3557, #457b9d);
+}
+
+.produto-card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.15s ease-in-out;
+}
+
+.produto-card:hover {
+    transform: translateY(-4px);
+}
+
+.produto-capa {
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+}
+
+.produto-capa-grande {
+    height: 320px;
+    border-radius: 12px;
+    font-size: 1.6rem;
+}
+
+footer p {
+    font-size: 0.9rem;
+}
