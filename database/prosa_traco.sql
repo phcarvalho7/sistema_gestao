@@ -1,31 +1,24 @@
--- ============================================================
--- Livraria Nerd - Sistema de Gestão de Vendas
--- Banco de Dados: livraria_nerd
--- SGBD: MariaDB (ambiente XAMPP)
+-- Banco de dados do sistema Prosa & Traço (MariaDB / XAMPP)
 --
--- Conteúdo deste script:
---   1. Tabelas + dados de exemplo
---   2. Funções (FUNCTION) reutilizáveis
---   3. Triggers (BEFORE INSERT / BEFORE UPDATE)
---   4. Views analíticas construídas com CTE (WITH)
---   5. View centralizadora (dados de 5 tabelas distintas)
---   6. Stored Procedures de busca, filtros e paginação
--- ============================================================
+-- Este script cria tudo de uma vez, na ordem abaixo:
+--   1. tabelas + dados de exemplo
+--   2. funções (FUNCTION)
+--   3. triggers (BEFORE INSERT e BEFORE UPDATE)
+--   4. views analíticas feitas com CTE (WITH)
+--   5. view que centraliza dados de 5 tabelas
+--   6. stored procedures de busca, filtro e paginação
+--
+-- Para importar: phpMyAdmin -> Importar -> escolher este arquivo
 
 SET NAMES utf8mb4;
 
-DROP DATABASE IF EXISTS `livraria_nerd`;
-CREATE DATABASE `livraria_nerd` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `livraria_nerd`;
+DROP DATABASE IF EXISTS `prosa_traco`;
+CREATE DATABASE `prosa_traco` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `prosa_traco`;
 
--- ============================================================
--- 1. TABELAS
--- ============================================================
+-- ===== 1. TABELAS =====
 
--- ------------------------------------------------------------
--- Tabela: categorias
--- Gêneros que podem ser usados por Livros, HQs e Mangás
--- ------------------------------------------------------------
+-- categorias: os gêneros, usados por livros, HQs e mangás
 CREATE TABLE `categorias` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL,
@@ -45,10 +38,7 @@ INSERT INTO `categorias` (`id`, `nome`) VALUES
 (9, 'Shonen'),
 (10, 'Seinen');
 
--- ------------------------------------------------------------
--- Tabela: usuarios
--- Login e gestão de acesso do painel administrativo
--- ------------------------------------------------------------
+-- usuarios: quem entra no painel (a senha é gravada como hash)
 CREATE TABLE `usuarios` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `nome` VARCHAR(100) NOT NULL,
@@ -63,13 +53,10 @@ CREATE TABLE `usuarios` (
 
 -- Senha de todos os usuários de exemplo: 123456
 INSERT INTO `usuarios` (`id`, `nome`, `email`, `senha`, `perfil`, `ativo`) VALUES
-(1, 'Administrador', 'admin@livrarianerd.com', '$2y$12$xTn34JkSg57QfhBFGILBqOnlCUfrYigEEqweR3lPJJgURYXh9FzC6', 'Administrador', 'Sim'),
-(2, 'Marina Oliveira', 'marina@livrarianerd.com', '$2y$12$xTn34JkSg57QfhBFGILBqOnlCUfrYigEEqweR3lPJJgURYXh9FzC6', 'Operador', 'Sim');
+(1, 'Administrador', 'admin@prosaetraco.com', '$2y$12$xTn34JkSg57QfhBFGILBqOnlCUfrYigEEqweR3lPJJgURYXh9FzC6', 'Administrador', 'Sim'),
+(2, 'Marina Oliveira', 'marina@prosaetraco.com', '$2y$12$xTn34JkSg57QfhBFGILBqOnlCUfrYigEEqweR3lPJJgURYXh9FzC6', 'Operador', 'Sim');
 
--- ------------------------------------------------------------
--- Tabela: produtos
--- Catálogo de Livros, HQs e Mangás
--- ------------------------------------------------------------
+-- produtos: o catálogo de livros, HQs e mangás
 CREATE TABLE `produtos` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `titulo` VARCHAR(150) NOT NULL,
@@ -109,10 +96,8 @@ INSERT INTO `produtos` (`id`, `titulo`, `autor`, `editora`, `tipo`, `categoria_i
 (17, 'Vagabond - Vol. 1', 'Takehiko Inoue', 'Panini', 'Mangá', 8, 32.90, 2, 6, 'A jornada de Musashi Miyamoto rumo a se tornar o maior espadachim do Japão.'),
 (18, 'A Revolução dos Bichos', 'George Orwell', 'Companhia das Letras', 'Livro', 8, 34.90, 22, 5, 'Animais de uma fazenda se rebelam contra os humanos em busca de igualdade.');
 
--- ------------------------------------------------------------
--- Tabela: vendas
--- Guarda também qual usuário do painel registrou a venda
--- ------------------------------------------------------------
+-- vendas: a "capa" da venda (cliente, data, total e status)
+-- o usuario_id guarda quem registrou a venda no painel
 CREATE TABLE `vendas` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `cliente_nome` VARCHAR(150) NOT NULL,
@@ -145,9 +130,7 @@ INSERT INTO `vendas` (`id`, `cliente_nome`, `usuario_id`, `data_venda`, `total`,
 (14, 'Aline Duarte',       2, '2026-08-19 11:40:00', 127.70, 'Concluída'),
 (15, 'Vinícius Rocha',     1, '2026-09-01 09:55:00', 77.70,  'Concluída');
 
--- ------------------------------------------------------------
--- Tabela: venda_itens
--- ------------------------------------------------------------
+-- venda_itens: os produtos de cada venda (uma linha por produto)
 CREATE TABLE `venda_itens` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `venda_id` INT(11) NOT NULL,
@@ -178,11 +161,9 @@ INSERT INTO `venda_itens` (`venda_id`, `produto_id`, `quantidade`, `valor_unitar
 (14, 12, 1, 64.90),(14, 6, 1, 39.90), (14, 2, 1, 22.90),
 (15, 1, 2, 24.90), (15, 4, 1, 27.90);
 
--- ============================================================
--- 2. FUNÇÕES (FUNCTION)
--- Encapsulam cálculos repetidos em todo o sistema, evitando
--- a reescrita de scripts massivos/complexos nas consultas.
--- ============================================================
+-- ===== 2. FUNÇÕES =====
+-- guardam contas que se repetem no sistema, para não reescrever o
+-- mesmo pedaço de SQL em várias consultas
 
 DROP FUNCTION IF EXISTS `fn_subtotal_item`;
 DROP FUNCTION IF EXISTS `fn_faturamento_produto`;
@@ -240,10 +221,8 @@ END$$
 
 DELIMITER ;
 
--- ============================================================
--- 3. TRIGGERS
--- Padronizam a gravação de valores sempre positivos.
--- ============================================================
+-- ===== 3. TRIGGERS =====
+-- rodam sozinhos quando alguém grava na tabela produtos
 
 DROP TRIGGER IF EXISTS `trg_produtos_valores_positivos`;
 DROP TRIGGER IF EXISTS `trg_produtos_valores_positivos_insert`;
@@ -288,11 +267,9 @@ END$$
 
 DELIMITER ;
 
--- ============================================================
--- 4. VIEWS ANALÍTICAS COM CTE (WITH)
--- Limpam e consolidam os dados brutos de vendas, entregando-os
--- perfeitamente estruturados para a API e para os relatórios.
--- ============================================================
+-- ===== 4. VIEWS ANALÍTICAS (com CTE) =====
+-- limpam e agrupam os dados brutos de vendas, já prontos para a API
+-- e para as telas
 
 -- Faturamento consolidado por mês
 DROP VIEW IF EXISTS `vw_faturamento_mensal`;
@@ -373,13 +350,10 @@ INNER JOIN produtos p   ON p.id = cs.produto_id
 INNER JOIN categorias c ON c.id = p.categoria_id
 ORDER BY cs.unidades_vendidas DESC, cs.faturamento_total DESC;
 
--- ============================================================
--- 5. VIEW CENTRALIZADORA
--- Reúne, em um único lugar, as informações mais importantes do
--- sistema que estão espalhadas em 5 tabelas distintas
--- (vendas + venda_itens + produtos + categorias + usuarios).
--- É a fonte de dados usada pelas procedures e pela API.
--- ============================================================
+-- ===== 5. VIEW CENTRALIZADORA =====
+-- junta em um lugar só as informações que estão espalhadas em 5
+-- tabelas: vendas + venda_itens + produtos + categorias + usuarios
+-- é a fonte usada pelas procedures e pela API
 DROP VIEW IF EXISTS `vw_painel_geral`;
 CREATE VIEW `vw_painel_geral` AS
 SELECT
@@ -405,15 +379,11 @@ INNER JOIN produtos p     ON p.id = vi.produto_id
 INNER JOIN categorias c   ON c.id = p.categoria_id
 LEFT  JOIN usuarios u     ON u.id = v.usuario_id;
 
--- ============================================================
--- 6. STORED PROCEDURES
--- Centralizam a busca, os filtros e a paginação dos indicadores
--- da dashboard, permitindo que a API em PHP faça apenas
--- chamadas limpas e assíncronas do tipo CALL.
--- ============================================================
+-- ===== 6. STORED PROCEDURES =====
+-- fazem a busca, o filtro e a paginação dentro do banco, para o PHP
+-- só precisar de uma chamada CALL
 
 DROP PROCEDURE IF EXISTS `sp_dashboard_itens`;
-DROP PROCEDURE IF EXISTS `sp_dashboard_produtos`;
 DROP PROCEDURE IF EXISTS `sp_dashboard_totais`;
 DROP PROCEDURE IF EXISTS `sp_listar_produtos`;
 
@@ -457,40 +427,6 @@ BEGIN
       AND (p_data_inicio IS NULL OR DATE(data_venda) >= p_data_inicio)
       AND (p_data_fim IS NULL OR DATE(data_venda) <= p_data_fim)
     ORDER BY data_venda DESC, venda_id DESC
-    LIMIT p_limite OFFSET p_offset;
-END$$
-
--- Entrega o array bruto de produtos (com a situação de estoque
--- calculada pela função), usado nos indicadores de estoque.
-CREATE PROCEDURE `sp_dashboard_produtos`(
-    IN p_busca   VARCHAR(150),
-    IN p_tipo    VARCHAR(20),
-    IN p_limite  INT,
-    IN p_offset  INT
-)
-BEGIN
-    IF p_limite IS NULL OR p_limite <= 0 THEN
-        SET p_limite = 500;
-    END IF;
-
-    IF p_offset IS NULL OR p_offset < 0 THEN
-        SET p_offset = 0;
-    END IF;
-
-    SELECT
-        p.id AS produto_id,
-        p.titulo,
-        p.tipo,
-        c.nome AS categoria,
-        p.preco,
-        p.estoque,
-        p.estoque_minimo,
-        fn_situacao_estoque(p.estoque, p.estoque_minimo) AS situacao_estoque
-    FROM produtos p
-    INNER JOIN categorias c ON c.id = p.categoria_id
-    WHERE (p_busca IS NULL OR p_busca = '' OR p.titulo LIKE CONCAT('%', p_busca, '%') OR p.autor LIKE CONCAT('%', p_busca, '%'))
-      AND (p_tipo IS NULL OR p_tipo = '' OR p.tipo = p_tipo)
-    ORDER BY p.titulo
     LIMIT p_limite OFFSET p_offset;
 END$$
 

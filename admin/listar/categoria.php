@@ -1,53 +1,72 @@
 <?php
-    if (!isset($pagina)) exit;
+// Listagem de categorias.
+//
+// O LEFT JOIN com produtos serve para contar quantos produtos cada
+// categoria tem. Esse número é importante porque categoria com produto
+// vinculado não pode ser excluída.
+
+if (!isset($pdo)) {
+    exit;
+}
+
+$sql = "select c.id, c.nome, count(p.id) as total_produtos
+        from categorias c
+        left join produtos p on p.categoria_id = c.id
+        group by c.id, c.nome
+        order by c.nome";
+
+$consulta = $pdo->prepare($sql);
+$consulta->execute();
+$categorias = $consulta->fetchAll(PDO::FETCH_OBJ);
 ?>
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Listagem de Categorias</h5>
-        <a href="cadastrar/categoria" class="btn btn-success btn-sm">Novo Registro</a>
+
+<div class="card">
+    <div class="cabecalho-card">
+        <div>
+            <h5 class="mb-0">Categorias</h5>
+            <span class="texto-mudo texto-mini"><?= count($categorias) ?> registro(s)</span>
+        </div>
+        <a href="cadastrar/categoria" class="btn btn-primario btn-sm">Nova categoria</a>
     </div>
-    <div class="card-body">
-        <table class="table table-bordered table-striped align-middle">
+
+    <div class="table-responsive">
+        <table class="table tabela mb-0">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>#</th>
                     <th>Nome</th>
-                    <th>Opções</th>
+                    <th class="text-center">Produtos</th>
+                    <th class="text-end">Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <?php
-                    $sql = "select * from categorias order by nome";
-                    $consulta = $pdo->prepare($sql);
-                    $consulta->execute();
+                <?php if (count($categorias) == 0) { ?>
+                    <tr>
+                        <td colspan="4" class="text-center texto-mudo py-4">Nenhuma categoria cadastrada.</td>
+                    </tr>
+                <?php } ?>
 
-                    $dadosCategorias = $consulta->fetchAll(PDO::FETCH_OBJ);
-
-                    if (empty($dadosCategorias)) {
-                        echo '<tr><td colspan="3" class="text-center text-muted">Nenhuma categoria cadastrada.</td></tr>';
-                    }
-
-                    foreach ($dadosCategorias as $dados) {
-                        ?>
-                        <tr>
-                            <td><?= $dados->id ?></td>
-                            <td><?= htmlspecialchars($dados->nome) ?></td>
-                            <td>
-                                <a href="cadastrar/categoria/<?= $dados->id ?>" class="btn btn-primary btn-sm">Editar</a>
-                                <a href="javascript:excluir(<?= $dados->id ?>)" class="btn btn-danger btn-sm">Excluir</a>
-                            </td>
-                        </tr>
-                        <?php
-                    }
-                ?>
+                <?php foreach ($categorias as $categoria) { ?>
+                    <tr>
+                        <td class="texto-mudo"><?= $categoria->id ?></td>
+                        <td><strong><?= htmlspecialchars($categoria->nome) ?></strong></td>
+                        <td class="text-center"><?= $categoria->total_produtos ?></td>
+                        <td class="text-end">
+                            <a href="cadastrar/categoria/<?= $categoria->id ?>" class="btn btn-contorno btn-sm">Editar</a>
+                            <a href="excluir/categoria/<?= $categoria->id ?>" class="btn btn-perigo btn-sm"
+                               onclick="return confirm('Excluir a categoria <?= htmlspecialchars($categoria->nome, ENT_QUOTES) ?>?')">
+                                Excluir
+                            </a>
+                        </td>
+                    </tr>
+                <?php } ?>
             </tbody>
         </table>
     </div>
+
+    <div class="rodape-card">
+        <span class="texto-mudo texto-mini">
+            Categorias com produtos vinculados não podem ser excluídas.
+        </span>
+    </div>
 </div>
-<script>
-    function excluir(id) {
-        if (confirm("Deseja realmente excluir esta categoria?")) {
-            location.href = "excluir/categoria/" + id;
-        }
-    }
-</script>

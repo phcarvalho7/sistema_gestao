@@ -1,40 +1,52 @@
 <?php
-    if (!isset($pagina)) exit;
+// Formulário de categoria (cadastro e edição).
+// Quem grava no banco é o salvar/categoria.php.
 
-    if (!empty($id)) {
-        $sql = "select * from categorias where id = :id limit 1";
-        $consulta = $pdo->prepare($sql);
-        $consulta->bindParam(":id", $id);
-        $consulta->execute();
+if (!isset($pdo)) {
+    exit;
+}
 
-        $dadosCadastro = $consulta->fetch(PDO::FETCH_OBJ);
+$nome = "";
+
+if ($id > 0) {
+    $consulta = $pdo->prepare("select * from categorias where id = :id limit 1");
+    $consulta->bindValue(":id", $id, PDO::PARAM_INT);
+    $consulta->execute();
+    $categoria = $consulta->fetch(PDO::FETCH_OBJ);
+
+    if (!$categoria) {
+        redirecionarCom("listar/categoria", "warning", "Categoria não encontrada.");
     }
 
-    $id = $dadosCadastro->id ?? NULL;
-    $nome = $dadosCadastro->nome ?? NULL;
+    $nome = $categoria->nome;
+}
 ?>
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Cadastro de Categoria</h5>
-        <div>
-            <a href="cadastrar/categoria" class="btn btn-success btn-sm">Novo Registro</a>
-            <a href="listar/categoria" class="btn btn-primary btn-sm">Listar Registros</a>
-        </div>
+
+<div class="card">
+    <div class="cabecalho-card">
+        <h5 class="mb-0"><?= $id > 0 ? "Editar categoria" : "Nova categoria" ?></h5>
+        <a href="listar/categoria" class="btn btn-contorno btn-sm">Voltar para a listagem</a>
     </div>
-    <div class="card-body">
-        <form name="formCadastro" method="post" action="salvar/categoria">
+
+    <div class="p-4">
+        <form method="post" action="salvar/categoria">
+            <input type="hidden" name="id" value="<?= $id > 0 ? $id : "" ?>">
+
             <div class="row g-3">
-                <div class="col-12 col-md-2">
-                    <label for="id" class="form-label">ID:</label>
-                    <input type="text" name="id" id="id" class="form-control" value="<?= $id ?>" readonly>
-                </div>
-                <div class="col-12 col-md-10">
-                    <label for="nome" class="form-label">Nome da Categoria:</label>
-                    <input type="text" name="nome" id="nome" class="form-control" required value="<?= htmlspecialchars($nome ?? "") ?>">
+                <div class="col-12 col-md-6">
+                    <label for="nome" class="form-label">Nome da categoria *</label>
+                    <input type="text" name="nome" id="nome" class="form-control" required autofocus
+                           value="<?= htmlspecialchars($nome) ?>">
+                    <span class="texto-mudo texto-mini">
+                        O nome aparece no menu da loja. Não pode repetir.
+                    </span>
                 </div>
             </div>
-            <br>
-            <button type="submit" class="btn btn-success float-end">Salvar Registro</button>
+
+            <div class="text-end mt-4">
+                <a href="listar/categoria" class="btn btn-suave">Cancelar</a>
+                <button type="submit" class="btn btn-primario">Salvar</button>
+            </div>
         </form>
     </div>
 </div>

@@ -1,93 +1,144 @@
-# Livraria Nerd - Sistema de Gestão de Vendas
+# Prosa & Traço - Sistema de Gestão de Vendas
 
-Sistema de gestão de vendas para uma livraria especializada em **Livros, HQs e Mangás**, desenvolvido como projeto acadêmico (Banco de Dados Avançado, Desenvolvimento Web Avançado, Lógica Avançada e Tech Forge).
+Sistema para uma livraria de **livros, HQs e mangás**, com duas partes:
 
-## Tecnologias utilizadas
+- **Loja** - catálogo público, busca e página do produto;
+- **Painel** - login, três CRUDs completos e uma dashboard de vendas.
 
-- **PHP 8** com PDO (sem frameworks)
-- **MariaDB** (CTEs, Views analíticas e Triggers)
-- **Bootstrap 5.3** (layout responsivo)
-- **TypeScript** (consumo da API e lógica da dashboard)
+Projeto acadêmico das disciplinas de Banco de Dados Avançado,
+Desenvolvimento Web Avançado, Lógica Avançada e Tech Forge.
 
-## Estrutura do projeto
+---
 
-```
-sistema_gestao/
-├── admin/              -> Painel administrativo (login, CRUDs e dashboard)
-│   ├── cadastrar/       -> Formulários de inclusão/edição
-│   ├── listar/          -> Listagens
-│   ├── salvar/          -> Processamento dos formulários
-│   ├── excluir/         -> Exclusão de registros
-│   ├── pages/           -> Login e páginas internas
-│   ├── js/dist/         -> JavaScript compilado a partir do TypeScript
-│   └── index.php        -> Controlador do painel (roteamento + sessão)
-├── apis/
-│   └── dashboard.php    -> API que entrega os dados brutos de vendas em JSON
-├── pages/               -> Páginas da loja pública (catálogo)
-├── database/
-│   └── livraria_nerd.sql -> Script completo do banco (tabelas, views, trigger e dados)
-├── ts/
-│   └── dashboard.ts     -> Código-fonte TypeScript da dashboard
-├── config.php           -> Conexão PDO com o banco
-├── tsconfig.json
-└── package.json
-```
+## Tecnologias
 
-## Como rodar o projeto (XAMPP)
+| Camada | O que foi usado |
+|---|---|
+| Banco de dados | MariaDB - 5 tabelas, 4 views (com CTE), 3 functions, 3 procedures, 2 triggers |
+| Back-end | PHP 8 com PDO, sem framework |
+| API | PHP devolvendo JSON a partir de chamadas `CALL` |
+| Front-end | Bootstrap 5 + CSS próprio |
+| Dashboard | TypeScript (modo `strict`), compilado para JavaScript |
 
-1. Copie a pasta do projeto para `htdocs` (ex.: `C:\xampp\htdocs\sistema_gestao`).
-2. Inicie o **Apache** e o **MySQL/MariaDB** no XAMPP.
-3. No phpMyAdmin, crie o banco importando o arquivo `database/livraria_nerd.sql` (ele já cria o banco `livraria_nerd`, as tabelas, a trigger, as views e os dados de exemplo).
-4. Confirme os dados de acesso em `config.php` (por padrão: host `localhost`, usuário `root`, senha em branco - padrão do XAMPP).
-5. Acesse a loja pública em `http://localhost/sistema_gestao/`.
-6. Acesse o painel administrativo em `http://localhost/sistema_gestao/admin/`.
-   - **Login:** admin@livrarianerd.com
-   - **Senha:** 123456
+---
 
-## Como compilar o TypeScript
+## Como rodar no XAMPP
 
-O código-fonte fica em `ts/dashboard.ts` e é compilado para `admin/js/dist/dashboard.js` (o projeto já é entregue com o `.js` compilado, mas o comando abaixo deve ser rodado sempre que o `.ts` for alterado):
+1. Copie a pasta `sistema_gestao` para dentro de `htdocs`
+   (ex.: `C:\xampp\htdocs\sistema_gestao`).
+2. No XAMPP, inicie o **Apache** e o **MySQL**.
+3. Abra o phpMyAdmin → aba **Importar** → escolha
+   `database/prosa_traco.sql` → **Executar**.
+4. Acesse:
+   - Loja: <http://localhost/sistema_gestao/>
+   - Painel: <http://localhost/sistema_gestao/admin/>
+
+> O sistema usa endereços amigáveis pelo `.htaccess`, então o
+> **mod_rewrite** do Apache precisa estar ativo (no XAMPP já vem).
+
+### Acesso ao painel
+
+| E-mail | Senha |
+|---|---|
+| admin@prosaetraco.com | 123456 |
+| marina@prosaetraco.com | 123456 |
+
+### Recompilar o TypeScript (opcional)
+
+O JavaScript já vem compilado. Só é necessário rodar isto se você
+alterar o arquivo `ts/dashboard.ts`:
 
 ```bash
 npm install
 npm run build
 ```
 
-Para recompilar automaticamente a cada alteração durante o desenvolvimento:
+---
 
-```bash
-npm run watch
+## Estrutura
+
+```
+sistema_gestao/
+├── index.php                 -> controlador da loja
+├── config.php                -> conexão com o banco
+├── funcoes.php               -> funções compartilhadas
+├── .htaccess                 -> endereços amigáveis
+├── templates/                -> topo e rodapé da loja
+├── pages/                    -> telas da loja
+├── css/style.css
+├── apis/dashboard.php        -> API em JSON
+├── ts/dashboard.ts           -> código-fonte da dashboard
+├── database/prosa_traco.sql  -> o banco completo
+├── EXPLICACAO.md             -> explicação completa do código e do banco
+└── admin/
+    ├── index.php             -> login + roteamento do painel
+    ├── functions.php
+    ├── templates/            -> menu lateral e barra de cima
+    ├── pages/                -> login, dashboard e erro
+    ├── listar/               -> produto, categoria, venda
+    ├── cadastrar/            -> formulários (cadastro e edição)
+    ├── salvar/               -> gravação no banco
+    ├── excluir/              -> exclusão com regras de negócio
+    ├── css/style.css
+    └── js/dist/dashboard.js  -> TypeScript compilado
 ```
 
-## O que já foi implementado nesta base
+---
 
-**Banco de Dados**
-- Views analíticas construídas com **CTE (WITH)** que consolidam os dados brutos de vendas: `vw_faturamento_mensal` (faturamento por mês) e `vw_faturamento_por_tipo` (faturamento por tipo de produto e categoria).
-- Trigger `BEFORE UPDATE` na tabela `produtos` que padroniza preço e estoque para sempre positivos (usa `ABS()` caso um valor negativo seja enviado).
+## Ordem dos commits
 
-**Desenvolvimento Web**
-- Interface construída com Bootstrap (navbar, cards, badges, tabelas, modais de confirmação via `confirm()`), com boa usabilidade tanto na loja pública quanto no painel.
-- Estrutura de pastas separada por responsabilidade (cadastrar / listar / salvar / excluir), preparando o projeto para os próximos sprints.
+O projeto foi entregue em quatro partes, e cada uma funciona sozinha:
 
-**Lógica Avançada (TypeScript)**
-- A API (`apis/dashboard.php`) entrega o **array bruto** de itens vendidos (sem nenhuma soma feita no PHP).
-- Todo o cálculo é feito em `ts/dashboard.ts` usando **`.reduce()`**: faturamento total, quantidade de itens vendidos, contagem de vendas únicas e faturamento agrupado por tipo (Livro / HQ / Mangá).
-- Tratamento de cenários de exceção: quando não há vendas, a dashboard exibe a mensagem "Nenhum dado registrado" em vez de quebrar; valores não numéricos são tratados para nunca gerar `NaN` na tela.
+| Parte | O que entra |
+|---|---|
+| 1 | Banco de dados + documentação |
+| 2 | Loja pública (catálogo, busca, produto) |
+| 3 | Painel: login e os 3 CRUDs |
+| 4 | API em JSON + dashboard em TypeScript |
+
+A explicação de tudo (banco, PHP, API e TypeScript) está no arquivo
+**`EXPLICACAO.md`**.
+
+---
+
+## Onde está cada item das disciplinas
+
+**Banco de Dados Avançado** - `database/prosa_traco.sql`
+
+| Item | Onde |
+|---|---|
+| Views analíticas com CTE | `vw_faturamento_mensal`, `vw_faturamento_por_tipo`, `vw_ranking_produtos` |
+| View centralizando várias tabelas | `vw_painel_geral` (5 tabelas) |
+| Stored procedures com busca, filtro e paginação | `sp_dashboard_itens`, `sp_dashboard_totais`, `sp_listar_produtos` |
+| Function reutilizável | `fn_subtotal_item`, `fn_faturamento_produto`, `fn_situacao_estoque` |
+| Trigger BEFORE UPDATE | `trg_produtos_valores_positivos` |
+
+**Desenvolvimento Web Avançado**
+
+| Item | Onde |
+|---|---|
+| Template para facilitar a manutenção | `templates/` e `admin/templates/` |
+| Estrutura de pastas definida | `listar` / `cadastrar` / `salvar` / `excluir` |
+| 3 CRUDs completos | Produtos, Categorias e Vendas |
+| Regras de exclusão com mensagem clara | `admin/excluir/*.php` |
+| Componentes do Bootstrap | menu, dropdown, cards, tabelas, alerts, paginação, formulários |
+
+**Lógica Avançada** - `ts/dashboard.ts`
+
+| Item | Onde |
+|---|---|
+| Tipagem e contratos de interface | `ItemVendaApi`, `RespostaApi`, `ItemVenda` |
+| `reduce` | `somarFaturamento`, `somarQuantidade`, `montarRanking` |
+| `filter` | `filtrarPorTipo`, `filtrarPorMes` |
+| `map` | `converterItens`, `faturamentoPorMes` |
+| Ranking com objeto de contagem | `montarRanking` |
+| Tratamento de exceções | `try/catch`, `paraNumero`, blocos de "sem dados" |
 
 **Tech Forge**
-- Consumo da API via `fetch` com `async/await` e `try/catch`.
-- Manipulação segura do DOM (toda leitura de elemento verifica `if (elemento)` antes de usá-lo - sem uso do operador `!`).
-- Código organizado em funções pequenas e com responsabilidade única (buscar dados, calcular, formatar e renderizar são funções separadas).
 
-## O que fica para os próximos sprints
-
-- CRUD completo de Produtos e Categorias com upload de capa.
-- Regras de negócio adicionais para exclusão (algumas já implementadas como base: não é possível excluir uma categoria com produtos vinculados, nem um produto que já tenha vendas).
-- Tipagem completa de contratos de interface, uso de `.filter()` e `.map()` e algoritmos de ranking (produto mais vendido) no TypeScript.
-- Stored Procedures para busca, filtros e paginação da dashboard.
-
-## Acesso de teste
-
-| Perfil | E-mail | Senha |
-|---|---|---|
-| Administrador | admin@livrarianerd.com | 123456 |
+| Item | Onde |
+|---|---|
+| API com `fetch` + `async/await` + `try/catch` | `carregarDashboard` |
+| Integração XAMPP + compilação do TypeScript | `npm run build` |
+| Manipulação segura do DOM | `escreverTexto`, `escreverHtml` (sempre com `if (elemento)`) |
+| Código organizado em funções pequenas | seções numeradas de 1 a 11 do `dashboard.ts` |

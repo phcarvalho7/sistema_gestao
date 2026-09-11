@@ -1,29 +1,46 @@
 <?php
-    if (!isset($pagina)) exit;
+// Exclui um produto.
+//
+// REGRA DE NEGÓCIO: produto que já apareceu em alguma venda não pode
+// ser excluído, senão o histórico e os relatórios ficariam quebrados.
+// Nesse caso o sistema explica o motivo para o usuário.
 
-    if (empty($id)) {
-        echo "<script>alert('Registro inválido');location.href='../listar/produto';</script>";
-        exit;
-    }
+if (!isset($pdo)) {
+    exit;
+}
 
-    // Verifica se o produto já possui vendas registradas
-    $sqlVerifica = "select count(*) as total from venda_itens where produto_id = :id";
-    $consultaVerifica = $pdo->prepare($sqlVerifica);
-    $consultaVerifica->bindParam(":id", $id);
-    $consultaVerifica->execute();
-    $verificacao = $consultaVerifica->fetch(PDO::FETCH_OBJ);
+if ($id == 0) {
+    redirecionarCom("listar/produto", "warning", "Registro inválido.");
+}
 
-    if ($verificacao->total > 0) {
-        echo "<script>alert('Não é possível excluir: este produto já possui {$verificacao->total} venda(s) registrada(s).');location.href='listar/produto';</script>";
-        exit;
-    }
+// busca o produto, para poder usar o título na mensagem
+$consulta = $pdo->prepare("select titulo from produtos where id = :id limit 1");
+$consulta->bindValue(":id", $id, PDO::PARAM_INT);
+$consulta->execute();
+$produto = $consulta->fetch(PDO::FETCH_OBJ);
 
-    $sql = "delete from produtos where id = :id limit 1";
-    $consulta = $pdo->prepare($sql);
-    $consulta->bindParam(":id", $id);
+if (!$produto) {
+    redirecionarCom("listar/produto", "warning", "Este produto já não existe mais.");
+}
 
-    if ($consulta->execute()) {
-        echo "<script>alert('Produto excluído com sucesso');location.href='listar/produto';</script>";
-    } else {
-        echo "<script>alert('Erro ao excluir o produto');location.href='listar/produto';</script>";
-    }
+// conta em quantos itens de venda ele aparece
+$consultaVendas = $pdo->prepare("select count(*) as total from venda_itens where produto_id = :id");
+$consultaVendas->bindValue(":id", $id, PDO::PARAM_INT);
+$consultaVendas->execute();
+$totalVendas = $consultaVendas->fetch(PDO::FETCH_OBJ)->total;
+
+if ($totalVendas > 0) {
+    redirecionarCom(
+        "listar/produto",
+        "danger",
+        "Não é possível excluir \"{$produto->titulo}\": ele aparece em {$totalVendas} item(ns) de venda. " .
+        "Se quiser tirá-lo da loja, deixe o estoque em zero."
+    );
+}
+
+// pode excluir
+$excluir = $pdo->prepare("delete from produtos where id = :id limit 1");
+$excluir->bindValue(":id", $id, PDO::PARAM_INT);
+$excluir->execute();
+
+redirecionarCom("listar/produto", "success", "Produto \"{$produto->titulo}\" excluído com sucesso.");

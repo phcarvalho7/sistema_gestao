@@ -1,91 +1,140 @@
 <?php
-    if (!isset($pagina)) exit;
+// Formulário de venda (registro e edição).
+//
+// Para ficar simples, o formulário tem três linhas de item fixas.
+// Basta deixar em branco as que não vão ser usadas: o salvar/venda.php
+// ignora as linhas sem produto.
 
-    $sqlProdutos = "select id, titulo, preco, estoque from produtos where estoque > 0 order by titulo";
-    $consultaProdutos = $pdo->prepare($sqlProdutos);
-    $consultaProdutos->execute();
-    $dadosProdutosDisponiveis = $consultaProdutos->fetchAll(PDO::FETCH_OBJ);
+if (!isset($pdo)) {
+    exit;
+}
+
+$clienteNome = "";
+$statusVenda = "Concluída";
+$itens = array();
+
+// edição: busca a venda e os itens dela
+if ($id > 0) {
+    $consultaVenda = $pdo->prepare("select * from vendas where id = :id limit 1");
+    $consultaVenda->bindValue(":id", $id, PDO::PARAM_INT);
+    $consultaVenda->execute();
+    $venda = $consultaVenda->fetch(PDO::FETCH_OBJ);
+
+    if (!$venda) {
+        redirecionarCom("listar/venda", "warning", "Venda não encontrada.");
+    }
+
+    $clienteNome = $venda->cliente_nome;
+    $statusVenda = $venda->status;
+
+    $consultaItens = $pdo->prepare(
+        "select produto_id, quantidade from venda_itens where venda_id = :id"
+    );
+    $consultaItens->bindValue(":id", $id, PDO::PARAM_INT);
+    $consultaItens->execute();
+    $itens = $consultaItens->fetchAll(PDO::FETCH_OBJ);
+}
+
+// produtos que podem ser escolhidos
+$consultaProdutos = $pdo->prepare("select id, titulo, preco, estoque from produtos order by titulo");
+$consultaProdutos->execute();
+$produtos = $consultaProdutos->fetchAll(PDO::FETCH_OBJ);
+
+// quantas linhas de item o formulário vai ter (no mínimo três)
+$totalLinhas = 3;
+
+if (count($itens) > $totalLinhas) {
+    $totalLinhas = count($itens);
+}
 ?>
-<div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Registrar Venda</h5>
-        <a href="listar/venda" class="btn btn-primary btn-sm">Listar Vendas</a>
+
+<div class="card">
+    <div class="cabecalho-card">
+        <h5 class="mb-0"><?= $id > 0 ? "Editar venda #" . $id : "Registrar venda" ?></h5>
+        <a href="listar/venda" class="btn btn-contorno btn-sm">Voltar para a listagem</a>
     </div>
-    <div class="card-body">
-        <form name="formVenda" method="post" action="salvar/venda" id="formVenda">
-            <div class="row g-3 mb-3">
-                <div class="col-12 col-md-6">
-                    <label for="cliente_nome" class="form-label">Cliente:</label>
-                    <input type="text" name="cliente_nome" id="cliente_nome" class="form-control" required>
-                </div>
+
+    <div class="p-4">
+        <?php if (count($produtos) == 0) { ?>
+            <div class="alert alert-warning mb-0">
+                Cadastre um produto antes de registrar vendas.
             </div>
+        <?php } else { ?>
 
-            <table class="table table-bordered align-middle" id="tabelaItens">
-                <thead>
-                    <tr>
-                        <th>Produto</th>
-                        <th style="width: 120px">Quantidade</th>
-                        <th style="width: 140px">Preço Unit.</th>
-                        <th style="width: 60px"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="linha-item">
-                        <td>
-                            <select name="produto_id[]" class="form-control select-produto" required>
-                                <option value="">Selecione um produto</option>
-                                <?php foreach ($dadosProdutosDisponiveis as $p) { ?>
-                                    <option value="<?= $p->id ?>" data-preco="<?= $p->preco ?>" data-estoque="<?= $p->estoque ?>">
-                                        <?= htmlspecialchars($p->titulo) ?> (estoque: <?= $p->estoque ?>)
-                                    </option>
-                                <?php } ?>
-                            </select>
-                        </td>
-                        <td><input type="number" name="quantidade[]" class="form-control input-quantidade" min="1" value="1" required></td>
-                        <td><input type="text" class="form-control input-preco" readonly></td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-danger btn-sm btn-remover">&times;</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <form method="post" action="salvar/venda">
+                <input type="hidden" name="id" value="<?= $id > 0 ? $id : "" ?>">
 
-            <button type="button" class="btn btn-outline-primary btn-sm" id="btnAdicionarItem">+ Adicionar Item</button>
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-6">
+                        <label for="cliente_nome" class="form-label">Cliente *</label>
+                        <input type="text" name="cliente_nome" id="cliente_nome" class="form-control" required
+                               value="<?= htmlspecialchars($clienteNome) ?>">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="status" class="form-label">Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="Concluída" <?= $statusVenda == "Concluída" ? "selected" : "" ?>>
+                                Concluída (desconta do estoque)
+                            </option>
+                            <option value="Cancelada" <?= $statusVenda == "Cancelada" ? "selected" : "" ?>>
+                                Cancelada (devolve ao estoque)
+                            </option>
+                        </select>
+                    </div>
+                </div>
 
-            <hr>
-            <button type="submit" class="btn btn-success float-end">Finalizar Venda</button>
-        </form>
+                <h6>Itens da venda</h6>
+                <p class="texto-mudo texto-mini">
+                    Deixe em branco as linhas que não for usar. O preço usado é o preço atual do produto.
+                </p>
+
+                <table class="table tabela">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th style="width: 140px">Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php for ($linha = 0; $linha < $totalLinhas; $linha++) {
+
+                            // se a venda já tem um item nesta linha, ele vem preenchido
+                            $produtoEscolhido = 0;
+                            $quantidade = "";
+
+                            if (isset($itens[$linha])) {
+                                $produtoEscolhido = $itens[$linha]->produto_id;
+                                $quantidade = $itens[$linha]->quantidade;
+                            }
+                            ?>
+                            <tr>
+                                <td>
+                                    <select name="produto_id[]" class="form-select">
+                                        <option value="">-- sem item --</option>
+                                        <?php foreach ($produtos as $produto) { ?>
+                                            <option value="<?= $produto->id ?>"
+                                                <?= $produtoEscolhido == $produto->id ? "selected" : "" ?>>
+                                                <?= htmlspecialchars($produto->titulo) ?>
+                                                (<?= formatarMoeda($produto->preco) ?> - <?= $produto->estoque ?> em estoque)
+                                            </option>
+                                        <?php } ?>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" name="quantidade[]" class="form-control" min="1"
+                                           value="<?= $quantidade ?>">
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+
+                <div class="text-end mt-3">
+                    <a href="listar/venda" class="btn btn-suave">Cancelar</a>
+                    <button type="submit" class="btn btn-primario">Salvar venda</button>
+                </div>
+            </form>
+
+        <?php } ?>
     </div>
 </div>
-
-<script>
-    // Preenche o preço automaticamente ao escolher um produto
-    document.addEventListener("change", function (evento) {
-        if (evento.target.classList.contains("select-produto")) {
-            const linha = evento.target.closest("tr");
-            const opcaoSelecionada = evento.target.selectedOptions[0];
-            const preco = opcaoSelecionada ? opcaoSelecionada.dataset.preco : "";
-            linha.querySelector(".input-preco").value = preco ? "R$ " + parseFloat(preco).toFixed(2) : "";
-        }
-    });
-
-    // Remove uma linha de item (mantendo ao menos uma)
-    document.getElementById("tabelaItens").addEventListener("click", function (evento) {
-        if (evento.target.classList.contains("btn-remover")) {
-            const linhas = document.querySelectorAll(".linha-item");
-            if (linhas.length > 1) {
-                evento.target.closest("tr").remove();
-            }
-        }
-    });
-
-    // Adiciona uma nova linha de item, clonando a primeira
-    document.getElementById("btnAdicionarItem").addEventListener("click", function () {
-        const tabela = document.querySelector("#tabelaItens tbody");
-        const novaLinha = tabela.querySelector(".linha-item").cloneNode(true);
-        novaLinha.querySelector(".select-produto").value = "";
-        novaLinha.querySelector(".input-quantidade").value = 1;
-        novaLinha.querySelector(".input-preco").value = "";
-        tabela.appendChild(novaLinha);
-    });
-</script>

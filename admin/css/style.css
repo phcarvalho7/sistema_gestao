@@ -1,36 +1,221 @@
-body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #f1f2f6;
+/* Estilos do painel.
+   Este arquivo é carregado DEPOIS do css da loja, então reaproveita as
+   cores (:root) e os botões que já estão definidos lá. */
+
+/* menu lateral */
+
+.menu-lateral {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 230px;
+    background-color: #fff;
+    border-right: 1px solid var(--borda);
+    padding: 1rem;
+    overflow-y: auto;
 }
 
-.navbar-brand {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
+.menu-lateral .marca {
+    display: block;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--texto);
+    margin-bottom: 1.5rem;
 }
 
-.login-wrapper {
+.menu-lateral .marca small {
+    display: block;
+    font-weight: 500;
+    font-size: 0.72rem;
+    color: var(--texto-mudo);
+}
+
+.menu-item {
+    display: block;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    color: var(--texto-medio);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.menu-item:hover {
+    background-color: var(--fundo);
+    color: var(--texto);
+}
+
+.menu-item.ativo {
+    background-color: var(--primaria-clara);
+    color: var(--primaria-escura);
+    font-weight: 600;
+}
+
+.texto-vermelho {
+    color: var(--vermelho);
+}
+
+/* área de conteúdo */
+
+.area-conteudo {
+    margin-left: 230px;
     min-height: 100vh;
-    background: linear-gradient(135deg, #1d3557, #457b9d);
+    display: flex;
+    flex-direction: column;
 }
 
-.login-card {
-    width: 100%;
-    max-width: 380px;
-    border: none;
-    border-radius: 14px;
+/* em telas pequenas o menu vira uma faixa no topo */
+@media (max-width: 767px) {
+    .menu-lateral {
+        position: static;
+        width: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--borda);
+    }
+
+    .area-conteudo {
+        margin-left: 0;
+    }
 }
 
-.stat-card {
-    border: none;
-    border-radius: 12px;
-    border-left: 5px solid #457b9d;
+.topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background-color: #fff;
+    border-bottom: 1px solid var(--borda);
+    padding: 1rem 1.5rem;
 }
 
-.stat-card h3 {
+.topo-titulo {
+    font-size: 1.2rem;
     font-weight: 700;
-    color: #1d3557;
+    margin: 0;
 }
 
-.card {
-    border-radius: 10px;
+.corpo {
+    flex: 1;
+    padding: 1.5rem;
+}
+
+.rodape-painel {
+    background-color: #fff;
+    border-top: 1px solid var(--borda);
+    padding: 1rem 1.5rem;
+}
+
+/* cards do painel */
+
+.cabecalho-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--borda);
+}
+
+.barra-filtros {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--borda);
+    background-color: #fbfbfe;
+    margin: 0;
+}
+
+.rodape-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--borda);
+    background-color: #fbfbfe;
+}
+
+.numero-grande {
+    display: block;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--texto);
+}
+
+/* tabelas */
+
+.tabela {
+    font-size: 0.875rem;
+}
+
+.tabela thead th {
+    background-color: #fbfbfe;
+    color: var(--texto-mudo);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--borda);
+    white-space: nowrap;
+}
+
+.tabela td {
+    vertical-align: middle;
+}
+
+/* botão de excluir */
+
+.btn-perigo {
+    background-color: #fff;
+    border: 1px solid var(--borda);
+    color: var(--vermelho);
+}
+
+.btn-perigo:hover {
+    background-color: var(--vermelho-claro);
+    border-color: var(--vermelho);
+    color: var(--vermelho);
+}
+
+/* tela de login */
+
+.corpo-login {
+    background-color: var(--fundo);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.caixa-login {
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem;
+}
+
+/* barras da dashboard */
+
+.lista-barras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.barra-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.barra-fundo {
+    height: 10px;
+    background-color: #f1f2f7;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.barra-valor {
+    height: 100%;
+    border-radius: 999px;
+    background-color: var(--primaria);
 }

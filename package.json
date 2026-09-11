@@ -1,8 +1,8 @@
 {
-  "name": "livraria-nerd-sistema-gestao",
+  "name": "prosa-traco-sistema-gestao",
   "version": "1.0.0",
   "private": true,
-  "description": "Sistema de Gestão de Vendas - Livraria Nerd (Livros, HQs e Mangás)",
+  "description": "Sistema de Gestão de Vendas - Prosa & Traço (Livros, HQs e Mangás)",
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch"

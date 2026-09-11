@@ -1,46 +1,268 @@
+/* Estilos da loja - complementam o Bootstrap.
+   As cores ficam todas no :root, então para mudar o visual do site
+   inteiro basta trocar os valores aqui em cima. */
+
+:root {
+    --fundo: #f6f7fb;
+    --borda: #e4e7ef;
+    --texto: #101828;
+    --texto-medio: #475467;
+    --texto-mudo: #7b8494;
+    --primaria: #4f46e5;
+    --primaria-escura: #4338ca;
+    --primaria-clara: #eef2ff;
+    --verde: #027a48;
+    --verde-claro: #e7f8ef;
+    --amarelo: #b54708;
+    --amarelo-claro: #fff5e6;
+    --vermelho: #b42318;
+    --vermelho-claro: #fdeceb;
+}
+
+/* base */
+
 body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #f5f6fa;
+    background-color: var(--fundo);
+    color: var(--texto);
+    font-size: 0.95rem;
 }
 
-.navbar-brand {
-    font-family: 'Poppins', sans-serif;
+h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
-    font-size: 1.4rem;
+    color: var(--texto);
 }
 
-.hero {
-    background: linear-gradient(135deg, #1d3557, #457b9d);
+a {
+    color: var(--primaria);
+    text-decoration: none;
 }
 
-.produto-card {
-    border: none;
+.texto-mudo  { color: var(--texto-mudo); }
+.texto-mini  { font-size: 0.82rem; }
+.texto-corpo { color: var(--texto-medio); line-height: 1.7; }
+
+.titulo-grande {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+}
+
+.preco-grande {
+    color: var(--primaria);
+    font-weight: 800;
+}
+
+/* botões */
+
+.btn {
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.btn-primario {
+    background-color: var(--primaria);
+    border: 1px solid var(--primaria);
+    color: #fff;
+}
+
+.btn-primario:hover {
+    background-color: var(--primaria-escura);
+    color: #fff;
+}
+
+.btn-contorno {
+    background-color: #fff;
+    border: 1px solid var(--borda);
+    color: var(--texto);
+}
+
+.btn-contorno:hover {
+    border-color: var(--primaria);
+    color: var(--primaria);
+}
+
+.btn-suave {
+    background-color: var(--primaria-clara);
+    border: 1px solid transparent;
+    color: var(--primaria-escura);
+}
+
+.btn-suave:hover {
+    background-color: #e0e6ff;
+    color: var(--primaria-escura);
+}
+
+/* menu */
+
+.navbar-loja {
+    background-color: #fff;
+    border-bottom: 1px solid var(--borda);
+}
+
+.navbar-loja .navbar-brand {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: var(--texto);
+}
+
+.marca-destaque {
+    color: var(--primaria);
+}
+
+.navbar-loja .nav-link {
+    color: var(--texto-medio);
+    font-weight: 500;
+}
+
+.navbar-loja .nav-link:hover {
+    color: var(--primaria);
+}
+
+/* formulários */
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    border: 1px solid var(--borda);
+    font-size: 0.875rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primaria);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+}
+
+.form-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--texto-medio);
+}
+
+/* cards e capas */
+
+.card {
+    background-color: #fff;
+    border: 1px solid var(--borda);
     border-radius: 12px;
+}
+
+.card-produto {
     overflow: hidden;
-    transition: transform 0.15s ease-in-out;
 }
 
-.produto-card:hover {
-    transform: translateY(-4px);
+.card-produto:hover {
+    border-color: var(--primaria);
 }
 
-.produto-capa {
-    height: 160px;
+.card-produto h6 {
+    font-size: 0.9rem;
+}
+
+/* a capa do produto é uma caixa colorida com as iniciais do título,
+   já que o projeto não trabalha com upload de imagem */
+.capa {
+    position: relative;
+    height: 170px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-weight: 700;
-    font-size: 1.2rem;
-    letter-spacing: 1px;
 }
 
-.produto-capa-grande {
-    height: 320px;
+.capa-letras {
+    font-size: 2.4rem;
+    font-weight: 800;
+}
+
+.capa-tipo {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background-color: rgba(0, 0, 0, 0.25);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.capa-grande {
+    height: 300px;
     border-radius: 12px;
-    font-size: 1.6rem;
 }
 
-footer p {
-    font-size: 0.9rem;
+.capa-grande .capa-letras {
+    font-size: 4rem;
+}
+
+/* etiquetas e pílulas */
+
+.etiqueta {
+    display: inline-block;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.pilula {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background-color: #f2f4f7;
+    color: var(--texto-medio);
+}
+
+.pilula-verde    { background-color: var(--verde-claro);    color: var(--verde); }
+.pilula-amarela  { background-color: var(--amarelo-claro);  color: var(--amarelo); }
+.pilula-vermelha { background-color: var(--vermelho-claro); color: var(--vermelho); }
+
+/* blocos da loja */
+
+.capa-home {
+    background-color: #fff;
+    border-bottom: 1px solid var(--borda);
+}
+
+.aviso-vazio {
+    background-color: #fff;
+    border: 1px dashed var(--borda);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--texto-mudo);
+}
+
+.erro-numero {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--primaria);
+    margin-bottom: 0;
+}
+
+.rodape {
+    background-color: #fff;
+    border-top: 1px solid var(--borda);
+}
+
+/* paginação */
+
+.page-link {
+    color: var(--texto-medio);
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    margin: 0 2px;
+    font-size: 0.85rem;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primaria);
+    border-color: var(--primaria);
+    color: #fff;
 }

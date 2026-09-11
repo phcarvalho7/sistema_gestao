@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "module": "none",
     "lib": ["ES2017", "DOM"],
-    "outDir": "./admin/js/dist",
+
     "rootDir": "./ts",
+    "outDir": "./admin/js/dist",
+
     "strict": true,
     "noImplicitAny": true,
+
     "removeComments": false,
     "sourceMap": false
   },
