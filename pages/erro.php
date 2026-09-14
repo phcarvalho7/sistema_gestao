@@ -1,12 +1,11 @@
 <?php
-// Tela mostrada quando o endereço não existe ou o registro
-// pedido não foi encontrado.
+// Tela mostrada quando o endereço pedido não existe no painel.
 ?>
-<section class="container py-5 text-center">
+<div class="card p-5 text-center">
     <h1 class="erro-numero">404</h1>
-    <h4>Página não encontrada</h4>
-    <p class="texto-mudo">O endereço acessado não existe ou o registro foi removido.</p>
-
-    <a href="index.php" class="btn btn-primario">Voltar ao início</a>
-    <a href="produtos" class="btn btn-suave">Ver catálogo</a>
-</section>
+    <h5>Página não encontrada</h5>
+    <p class="texto-mudo">Use o menu lateral para continuar.</p>
+    <div>
+        <a href="index.php" class="btn btn-primario">Voltar ao início</a>
+    </div>
+</div>

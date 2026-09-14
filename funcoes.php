@@ -1,7 +1,9 @@
 <?php
-// Funções que a loja e o painel usam.
+// Funções usadas pelo painel.
 // Ficam aqui para não repetir o mesmo código em várias telas.
 
+
+// ----- 1. formatação -----
 
 // 24.9 vira "R$ 24,90"
 function formatarMoeda($valor)
@@ -10,7 +12,7 @@ function formatarMoeda($valor)
 }
 
 
-// cor de cada tipo de produto (usada na capa e nas etiquetas)
+// cor de cada tipo de produto (usada nas etiquetas das listagens)
 function corPorTipo($tipo)
 {
     if ($tipo == "HQ") {
@@ -25,14 +27,7 @@ function corPorTipo($tipo)
 }
 
 
-// as duas primeiras letras do título
-// o projeto não tem upload de imagem, então a capa é feita com essas
-// letras em cima da cor do tipo
-function iniciaisTitulo($titulo)
-{
-    return mb_strtoupper(mb_substr($titulo, 0, 2));
-}
-
+// ----- 2. avisos na tela -----
 
 // guarda um aviso na sessão para aparecer na tela seguinte
 // $tipo pode ser success, danger, warning ou info
@@ -63,52 +58,77 @@ function mostrarMensagem()
 }
 
 
-// a capa colorida do produto ($tamanho: "media" ou "grande")
-function mostrarCapa($produto, $tamanho = "media")
-{
-    $classe = "capa";
+// ----- 3. endereços do painel -----
 
-    if ($tamanho == "grande") {
-        $classe = "capa capa-grande";
-    }
-    ?>
-    <div class="<?= $classe ?>" style="background-color: <?= corPorTipo($produto->tipo) ?>">
-        <span class="capa-letras"><?= iniciaisTitulo($produto->titulo) ?></span>
-        <span class="capa-tipo"><?= htmlspecialchars($produto->tipo) ?></span>
-    </div>
-    <?php
+// monta o endereço completo de uma tela, tipo
+// /sistema_gestao/listar/produto
+//
+// isso é necessário porque o cabeçalho HTTP "Location" não entende a
+// tag <base> do HTML: ele precisa do caminho a partir da raiz do site
+function urlPainel($rota)
+{
+    $pasta = dirname($_SERVER["SCRIPT_NAME"]);
+
+    return rtrim($pasta, "/") . "/" . $rota;
 }
 
 
-// o card do produto, usado na home, no catálogo, na busca e na categoria
-function mostrarCardProduto($produto)
+// guarda uma mensagem e volta para outra tela
+// (é o que acontece depois de salvar ou excluir um registro)
+function redirecionarCom($rota, $tipo, $texto)
 {
+    definirMensagem($tipo, $texto);
+    header("Location: " . urlPainel($rota));
+    exit;
+}
+
+
+// ----- 4. etiquetas e paginação -----
+
+// etiqueta colorida da situação do estoque
+// a situação (Normal, Crítico ou Esgotado) vem calculada da função
+// fn_situacao_estoque, lá no banco
+function pilulaEstoque($situacao, $estoque)
+{
+    if ($situacao == "Esgotado") {
+        return '<span class="pilula pilula-vermelha">Esgotado</span>';
+    }
+
+    if ($situacao == "Crítico") {
+        return '<span class="pilula pilula-amarela">' . $estoque . ' un.</span>';
+    }
+
+    return '<span class="pilula pilula-verde">' . $estoque . ' un.</span>';
+}
+
+
+// etiqueta colorida do status da venda
+function pilulaStatus($status)
+{
+    if ($status == "Cancelada") {
+        return '<span class="pilula pilula-vermelha">Cancelada</span>';
+    }
+
+    return '<span class="pilula pilula-verde">Concluída</span>';
+}
+
+
+// mostra os links das páginas (1, 2, 3...) embaixo de uma listagem
+//
+// $extra são os filtros que já estão na tela e precisam continuar
+// valendo quando o usuário troca de página, tipo "busca=one&"
+function mostrarPaginacao($rota, $paginaAtual, $totalPaginas, $extra = "")
+{
+    if ($totalPaginas <= 1) {
+        return;
+    }
     ?>
-    <div class="col-6 col-md-4 col-lg-3">
-        <div class="card card-produto h-100">
-            <a href="produto/<?= $produto->id ?>">
-                <?php mostrarCapa($produto); ?>
-            </a>
-            <div class="card-body">
-                <span class="etiqueta" style="background-color: <?= corPorTipo($produto->tipo) ?>">
-                    <?= htmlspecialchars($produto->tipo) ?>
-                </span>
-                <h6 class="mt-2 mb-1"><?= htmlspecialchars($produto->titulo) ?></h6>
-                <p class="texto-mudo texto-mini mb-2"><?= htmlspecialchars($produto->autor) ?></p>
-
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <strong><?= formatarMoeda($produto->preco) ?></strong>
-
-                    <?php if ($produto->estoque > 0) { ?>
-                        <span class="pilula pilula-verde"><?= $produto->estoque ?> un.</span>
-                    <?php } else { ?>
-                        <span class="pilula pilula-vermelha">Esgotado</span>
-                    <?php } ?>
-                </div>
-
-                <a href="produto/<?= $produto->id ?>" class="btn btn-suave btn-sm w-100">Ver detalhes</a>
-            </div>
-        </div>
-    </div>
+    <ul class="pagination pagination-sm mb-0">
+        <?php for ($numero = 1; $numero <= $totalPaginas; $numero++) { ?>
+            <li class="page-item <?= $numero == $paginaAtual ? "active" : "" ?>">
+                <a class="page-link" href="<?= $rota ?>?<?= $extra ?>p=<?= $numero ?>"><?= $numero ?></a>
+            </li>
+        <?php } ?>
+    </ul>
     <?php
 }

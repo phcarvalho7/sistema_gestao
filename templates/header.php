@@ -1,13 +1,13 @@
 <?php
-// TEMPLATE - topo de todas as páginas da loja (head, menu e busca).
-// Como o index.php inclui este arquivo em todas as telas, para mudar
-// o menu do site inteiro basta mexer aqui.
+// TEMPLATE - topo do painel (head, menu lateral e barra de cima).
 
-// categorias que aparecem no menu
-$sqlMenu = "select id, nome from categorias order by nome";
-$consultaMenu = $pdo->prepare($sqlMenu);
-$consultaMenu->execute();
-$categoriasMenu = $consultaMenu->fetchAll(PDO::FETCH_OBJ);
+// itens do menu lateral: endereço, nome e qual chave deixa o item aceso
+$menu = array(
+    array("rota" => "index.php",        "nome" => "Início",     "chave" => "home"),
+    array("rota" => "listar/produto",   "nome" => "Produtos",   "chave" => "produto"),
+    array("rota" => "listar/categoria", "nome" => "Categorias", "chave" => "categoria"),
+    array("rota" => "listar/venda",     "nome" => "Vendas",     "chave" => "venda")
+);
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -15,65 +15,48 @@ $categoriasMenu = $consultaMenu->fetchAll(PDO::FETCH_OBJ);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prosa &amp; Traço - <?= $tituloPagina ?></title>
+    <title>Painel - <?= $tituloPagina ?></title>
 
-    <!-- a tag base faz os endereços amigáveis (produto/5) funcionarem -->
-    <base href="http://<?= $_SERVER["HTTP_HOST"] . $_SERVER["SCRIPT_NAME"] ?>">
+    <base href="http://<?= $_SERVER["HTTP_HOST"] . rtrim(dirname($_SERVER["SCRIPT_NAME"]), "/") ?>/">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <link href="css/painel.css" rel="stylesheet">
 </head>
 
 <body>
-    <!-- MENU -->
-    <nav class="navbar navbar-expand-lg navbar-loja">
-        <div class="container">
-            <a class="navbar-brand" href="index.php">
-                Prosa <span class="marca-destaque">&amp; Traço</span>
+    <!-- menu lateral -->
+    <div class="menu-lateral">
+        <a class="marca" href="index.php">
+            Prosa <span class="marca-destaque">&amp; Traço</span>
+            <small>Painel de gestão</small>
+        </a>
+
+        <?php foreach ($menu as $item) { ?>
+            <a href="<?= $item["rota"] ?>" class="menu-item <?= $menuAtivo == $item["chave"] ? "ativo" : "" ?>">
+                <?= $item["nome"] ?>
             </a>
+        <?php } ?>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <hr>
 
-            <div class="collapse navbar-collapse" id="menu">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">Início</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="produtos">Catálogo</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Categorias
-                        </a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($categoriasMenu as $categoria) { ?>
-                                <li>
-                                    <a class="dropdown-item" href="categoria/<?= $categoria->id ?>">
-                                        <?= htmlspecialchars($categoria->nome) ?>
-                                    </a>
-                                </li>
-                            <?php } ?>
-                        </ul>
-                    </li>
-                </ul>
+        <a href="cadastrar/venda" class="menu-item">Registrar venda</a>
+        <a href="sair.php" class="menu-item texto-vermelho">Sair</a>
+    </div>
 
-                <form class="d-flex me-2" method="post" action="buscar">
-                    <input class="form-control me-2" type="search" name="busca" placeholder="Título ou autor">
-                    <button class="btn btn-primario" type="submit">Buscar</button>
-                </form>
+    <!-- conteúdo -->
+    <div class="area-conteudo">
+        <div class="topo">
+            <div>
+                <h1 class="topo-titulo"><?= $tituloPagina ?></h1>
+                <span class="texto-mudo texto-mini"><?= date("d/m/Y") ?></span>
+            </div>
 
-                <a href="admin/" target="_blank" class="btn btn-contorno">Painel</a>
+            <div class="text-end">
+                <strong><?= htmlspecialchars($_SESSION["usuario"]["nome"]) ?></strong>
+                <span class="texto-mudo texto-mini d-block"><?= htmlspecialchars($_SESSION["usuario"]["perfil"]) ?></span>
             </div>
         </div>
-    </nav>
 
-    <?php if (isset($_SESSION["mensagem"])) { ?>
-        <div class="container mt-3">
+        <div class="corpo">
             <?php mostrarMensagem(); ?>
-        </div>
-    <?php } ?>
-
-    <main>

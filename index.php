@@ -1,70 +1,125 @@
 <?php
-// LOJA - este é o único arquivo que o navegador chama.
-// Ele decide qual página mostrar e monta a tela em 3 partes:
-// templates/header.php + pages/<pagina>.php + templates/footer.php
+// PAINEL - este é o único arquivo que o navegador chama.
+// Ele faz três coisas: cuida do login, descobre qual tela foi pedida
+// e monta a tela com os templates.
 //
-// O .htaccess manda todos os endereços para cá:
-// /produtos    -> $pagina = "produtos"
-// /produto/5   -> $pagina = "produto" e $id = 5
+// Quem abre o endereço do sistema sem estar logado cai na tela de
+// login (pages/login.php). Depois de entrar, vai para a dashboard.
+//
+// O endereço tem o formato pasta/tela/id:
+// listar/produto        -> listar/produto.php
+// cadastrar/produto/7   -> cadastrar/produto.php com $id = 7
+// excluir/categoria/3   -> excluir/categoria.php com $id = 3
 
 session_start();
 
 include "config.php";
 include "funcoes.php";
 
+// ----- 1. login -----
+$logado = isset($_SESSION["usuario"]);
 
-// ----- descobre a página pedida no endereço -----
+// recebeu o formulário de login e ainda não está logado: confere os dados
+if (!$logado && isset($_POST["email"])) {
+    $email = trim($_POST["email"]);
+    $senha = trim($_POST["senha"]);
 
-$rota = "";
+    $consulta = $pdo->prepare("select * from usuarios where email = :email limit 1");
+    $consulta->bindValue(":email", $email);
+    $consulta->execute();
+    $usuario = $consulta->fetch(PDO::FETCH_OBJ);
 
-if (isset($_GET["param"])) {
+    if (!$usuario) {
+        definirMensagem("danger", "Usuário não encontrado. Confira o e-mail digitado.");
+    } else if ($usuario->ativo != "Sim") {
+        definirMensagem("danger", "Este usuário está inativo.");
+    } else if (!password_verify($senha, $usuario->senha)) {
+        // password_verify compara a senha digitada com o hash do banco
+        definirMensagem("danger", "Senha incorreta. Tente novamente.");
+    } else {
+        // login correto: guarda os dados na sessão e recarrega a página
+        $_SESSION["usuario"] = array(
+            "id" => $usuario->id,
+            "nome" => $usuario->nome,
+            "email" => $usuario->email,
+            "perfil" => $usuario->perfil
+        );
+
+        definirMensagem("success", "Bem-vindo(a), " . $usuario->nome . "!");
+        header("Location: " . urlPainel("index.php"));
+        exit;
+    }
+}
+
+// sem sessão: mostra a tela de login e para aqui
+if (!isset($_SESSION["usuario"])) {
+    include "pages/login.php";
+    exit;
+}
+
+// ----- 2. qual tela foi pedida -----
+$rota = "pages/home";
+
+if (isset($_GET["param"]) && $_GET["param"] != "") {
     $rota = $_GET["param"];
 }
 
 $partes = explode("/", $rota);
 
-$pagina = $partes[0];
+$pasta = basename($partes[0]);
+$tela = "home";
 $id = 0;
 
 if (isset($partes[1])) {
-    $id = (int) $partes[1];
+    $tela = basename($partes[1]);
 }
 
-if ($pagina == "") {
-    $pagina = "home";
+if (isset($partes[2])) {
+    $id = (int) $partes[2];
 }
 
-// basename() tira as barras do nome, assim ninguém consegue usar o
-// endereço para abrir arquivos de outras pastas
-$pagina = basename($pagina);
+// só estas pastas podem ser abertas pelo endereço
+$pastasPermitidas = array("pages", "listar", "cadastrar", "salvar", "excluir");
 
-$arquivo = "pages/" . $pagina . ".php";
+if (!in_array($pasta, $pastasPermitidas)) {
+    $pasta = "pages";
+    $tela = "erro";
+}
+
+$arquivo = $pasta . "/" . $tela . ".php";
 
 if (!file_exists($arquivo)) {
-    $pagina = "erro";
+    $pasta = "pages";
+    $tela = "erro";
     $arquivo = "pages/erro.php";
 }
 
+// ----- 3. monta a tela -----
 
-// ----- título da aba do navegador -----
+// as pastas salvar e excluir não têm tela: elas gravam no banco e
+// redirecionam de volta para a listagem. Por isso são incluídas antes
+// do template, quando nada ainda foi escrito na página.
+if ($pasta == "salvar" || $pasta == "excluir") {
+    include $arquivo;
+    exit;
+}
 
+// título da tela e item do menu que fica destacado
 $titulos = array(
-    "home"      => "Livros, HQs e Mangás",
-    "produtos"  => "Catálogo",
-    "produto"   => "Detalhes do produto",
-    "categoria" => "Categoria",
-    "buscar"    => "Busca",
+    "home"      => "Início",
+    "produto"   => "Produtos",
+    "categoria" => "Categorias",
+    "venda"     => "Vendas",
     "erro"      => "Página não encontrada"
 );
 
-$tituloPagina = "Prosa & Traço";
+$tituloPagina = "Painel";
 
-if (isset($titulos[$pagina])) {
-    $tituloPagina = $titulos[$pagina];
+if (isset($titulos[$tela])) {
+    $tituloPagina = $titulos[$tela];
 }
 
-
-// ----- monta a tela -----
+$menuAtivo = $tela;
 
 include "templates/header.php";
 include $arquivo;
