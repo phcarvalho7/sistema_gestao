@@ -21,3 +21,4 @@ try {
 } catch (PDOException $erro) {
     die("Erro ao conectar no banco de dados: " . $erro->getMessage());
 }
+.
